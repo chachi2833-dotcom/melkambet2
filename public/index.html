@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#080910" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>መልካም BET</title>
+
+    <!-- Telegram Mini App SDK — MUST be first script -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { height: 100%; background: #080910; overflow: hidden; }
+      body { -webkit-tap-highlight-color: transparent; -webkit-font-smoothing: antialiased; }
+      #root { height: 100%; }
+
+      /* Splash screen shown while React loads */
+      #splash {
+        position: fixed; inset: 0;
+        background: #080910;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.5s;
+      }
+      #splash.hidden { opacity: 0; pointer-events: none; }
+      #splash-logo {
+        font-family: 'Arial Black', sans-serif;
+        font-size: 36px; font-weight: 900;
+        color: #e8b84f;
+        text-shadow: 0 0 40px rgba(232,184,79,0.5);
+        letter-spacing: 2px;
+        margin-bottom: 6px;
+      }
+      #splash-sub {
+        font-family: Arial, sans-serif;
+        font-size: 11px; letter-spacing: 3px;
+        color: #6b6f82; margin-bottom: 40px;
+      }
+      #splash-bar {
+        width: 120px; height: 2px;
+        background: #1a1d28; border-radius: 1px; overflow: hidden;
+      }
+      #splash-fill {
+        height: 100%; background: #e8b84f; border-radius: 1px;
+        animation: load 1.5s ease-out forwards;
+      }
+      @keyframes load { from { width: 0% } to { width: 100% } }
+    </style>
+  </head>
+  <body>
+    <!-- Splash shown while app loads -->
+    <div id="splash">
+      <div id="splash-logo">መልካም BET</div>
+      <div id="splash-sub">ETHIOPIA'S PREMIER BETTING</div>
+      <div id="splash-bar"><div id="splash-fill"></div></div>
+    </div>
+
+    <!-- React app mounts here -->
+    <div id="root"></div>
+
+    <script>
+      // Hide splash after React loads
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          var splash = document.getElementById('splash');
+          if (splash) {
+            splash.classList.add('hidden');
+            setTimeout(function() { splash.remove(); }, 600);
+          }
+        }, 1600);
+      });
+
+      // Tell Telegram the app is ready (expand to full screen)
+      if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+        // Set the header color to match app theme
+        window.Telegram.WebApp.setHeaderColor('#080910');
+        window.Telegram.WebApp.setBackgroundColor('#080910');
+      }
+    </script>
+  </body>
+</html>
