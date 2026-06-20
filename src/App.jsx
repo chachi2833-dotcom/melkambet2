@@ -625,11 +625,22 @@ function HomePage({ setPage, user, updateBalance, addToBetslip, showToast }) {
 
 // ── SPORTS PAGE (The Odds API) ────────────────────────────────────────────────
 const SPORTS = [
+const SPORTS = [
+  { key:"soccer_brazil_campeonato", label:"Brazil 🇧🇷" },
+  { key:"soccer_argentina_primera_division", label:"Argentina 🇦🇷" },
+  { key:"soccer_mexico_ligamx", label:"Liga MX 🇲🇽" },
+  { key:"soccer_turkey_super_league", label:"Turkey 🇹🇷" },
+  { key:"soccer_usa_mls", label:"MLS 🇺🇸" },
   { key:"soccer_epl", label:"EPL ⚽" },
-  { key:"soccer_ethiopia_premier", label:"Ethiopia 🇪🇹" },
+  { key:"soccer_spain_la_liga", label:"LaLiga 🇪🇸" },
+  { key:"soccer_italy_serie_a", label:"Serie A 🇮🇹" },
+  { key:"soccer_germany_bundesliga", label:"Bundesliga 🇩🇪" },
+  { key:"soccer_uefa_champs_league", label:"UCL ⭐" },
+  { key:"soccer_uefa_europa_league", label:"Europa 🟠" },
+  { key:"tennis_atp_wimbledon", label:"Wimbledon 🎾" },
+  { key:"cricket_test_match", label:"Cricket 🏏" },
   { key:"basketball_nba", label:"NBA 🏀" },
   { key:"americanfootball_nfl", label:"NFL 🏈" },
-  { key:"soccer_uefa_champs_league", label:"UCL ⭐" },
 ];
 function SportsPage({ addToBetslip, betslip, showToast }) {
   const [sport, setSport] = useState(SPORTS[0].key);
