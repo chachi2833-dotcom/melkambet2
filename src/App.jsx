@@ -739,13 +739,11 @@ function SportsPage({ addToBetslip, betslip, showToast }) {
             <div className="team-name away">{m.away}</div>
           </div>
           <div className="match-odds">
-            <div className={`odd-btn ${selected[m.id]==="1"?"selected":""}`} onClick={() => handleOdd(m,"1",m.homeOdd)}>
-              <span className="odd-label">1</span>
-              <span className="odd-val">{m.homeOdd?.toFixed(2)}</span>
-            </div>
-            {m.drawOdd && (
-              <div className={`odd-btn ${selected[m.id]==="X"?"selected":""}`} onClick={() => handleOdd(m,"X",m.drawOdd)}>
-                <span className="odd-label">X</span>
+            {market==="h2h"&&<><div className={`odd-btn ${selected[m.id]==="1"?"selected":""}`} onClick={()=>handleOdd(m,"1",m.homeOdd)}><span className="odd-label">1</span><span className="odd-val">{(m.homeOdd||1.90).toFixed(2)}</span></div>{m.drawOdd&&<div className={`odd-btn ${selected[m.id]==="X"?"selected":""}`} onClick={()=>handleOdd(m,"X",m.drawOdd)}><span className="odd-label">X</span><span className="odd-val">{m.drawOdd.toFixed(2)}</span></div>}<div className={`odd-btn ${selected[m.id]==="2"?"selected":""}`} onClick={()=>handleOdd(m,"2",m.awayOdd)}><span className="odd-label">2</span><span className="odd-val">{(m.awayOdd||2.10).toFixed(2)}</span></div></>}
+            {market==="totals"&&<><div className={`odd-btn ${selected[m.id]==="over"?"selected":""}`} onClick={()=>handleOdd(m,"Over 2.5",1.85)}><span className="odd-label">OVER 2.5</span><span className="odd-val">1.85</span></div><div className={`odd-btn ${selected[m.id]==="under"?"selected":""}`} onClick={()=>handleOdd(m,"Under 2.5",1.95)}><span className="odd-label">UNDER 2.5</span><span className="odd-val">1.95</span></div></>}
+            {market==="btts"&&<><div className={`odd-btn ${selected[m.id]==="yes"?"selected":""}`} onClick={()=>handleOdd(m,"BTTS Yes",1.75)}><span className="odd-label">YES</span><span className="odd-val">1.75</span></div><div className={`odd-btn ${selected[m.id]==="no"?"selected":""}`} onClick={()=>handleOdd(m,"BTTS No",2.05)}><span className="odd-label">NO</span><span className="odd-val">2.05</span></div></>}
+            {market==="double_chance"&&<><div className={`odd-btn ${selected[m.id]==="1x"?"selected":""}`} onClick={()=>handleOdd(m,"1X",1.35)}><span className="odd-label">1X</span><span className="odd-val">1.35</span></div><div className={`odd-btn ${selected[m.id]==="12"?"selected":""}`} onClick={()=>handleOdd(m,"12",1.25)}><span className="odd-label">12</span><span className="odd-val">1.25</span></div><div className={`odd-btn ${selected[m.id]==="x2"?"selected":""}`} onClick={()=>handleOdd(m,"X2",1.55)}><span className="odd-label">X2</span><span className="odd-val">1.55</span></div></>}
+          </div>
 const SPORTS = [
   { key:"soccer_epl", label:"EPL ⚽" },
   { key:"soccer_ethiopia_premier", label:"Ethiopia 🇪🇹" },
