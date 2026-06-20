@@ -661,11 +661,12 @@ const SPORTS = [
 ];
 function SportsPage({ addToBetslip, betslip, showToast }) {
   const [sport, setSport] = useState(SPORTS[0].key);
+  const [market, setMarket] = useState("h2h");
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState({});
 
-  useEffect(() => { fetchOdds(sport); }, [sport]);
+  useEffect(() => { fetchOdds(sport, market); }, [sport, market]);
 
   const fetchOdds = async (sportKey) => {
     setLoading(true);
@@ -673,7 +674,7 @@ function SportsPage({ addToBetslip, betslip, showToast }) {
     try {
       // Using The Odds API free tier — user must add their own API key
       const API_KEY = "51d4c6ce7b8b5e527a0ae793e48c6e62"; // user replaces this
-      const res = await fetch(`https://api.the-odds-api.com/v4/sports/${sportKey}/odds/?apiKey=${API_KEY}&regions=eu&markets=h2h&oddsFormat=decimal`);
+      const res = await fetch(`https://api.the-odds-api.com/v4/sports/${sportKey}/odds/?apiKey=${API_KEY}&regions=eu&markets=${market}&oddsFormat=decimal`);
       if (!res.ok) throw new Error("API error");
       const data = await res.json();
       const formatted = data.slice(0,8).map(g => {
@@ -720,6 +721,11 @@ function SportsPage({ addToBetslip, betslip, showToast }) {
       <div className="sports-tabs">
         {SPORTS.map(s => (
           <div key={s.key} className={`sport-tab ${sport===s.key?"active":""}`} onClick={() => setSport(s.key)}>{s.label}</div>
+        ))}
+      </div>
+      <div className="sports-tabs" style={{paddingTop:4,paddingBottom:8}}>
+        {[{key:"h2h",label:"1X2"},{key:"totals",label:"Over/Under"},{key:"btts",label:"Both Score"},{key:"double_chance",label:"Double Chance"}].map(mk => (
+          <div key={mk.key} className={`sport-tab ${market===mk.key?"active":""}`} onClick={() => setMarket(mk.key)}>{mk.label}</div>
         ))}
       </div>
       {loading && <div className="loading-pulse">Loading odds…</div>}
