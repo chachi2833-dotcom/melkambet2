@@ -31,7 +31,7 @@ export const firebaseConfig = {
 // Free tier = 500 requests/month (enough for testing)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const ODDS_API_KEY = "PASTE_YOUR_ODDS_API_KEY_HERE";
+export const ODDS_API_KEY = "51d4c6ce7b8b5e527a0ae793e48c6e62";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Payment Details (change anytime)
