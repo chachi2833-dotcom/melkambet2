@@ -644,7 +644,7 @@ function SportsPage({ addToBetslip, betslip, showToast }) {
     setMatches([]);
     try {
       // Using The Odds API free tier — user must add their own API key
-      const API_KEY = "YOUR_ODDS_API_KEY"; // user replaces this
+      const API_KEY = "51d4c6ce7b8b5e527a0ae793e48c6e62"; // user replaces this
       const res = await fetch(`https://api.the-odds-api.com/v4/sports/${sportKey}/odds/?apiKey=${API_KEY}&regions=eu&markets=h2h&oddsFormat=decimal`);
       if (!res.ok) throw new Error("API error");
       const data = await res.json();
