@@ -357,7 +357,7 @@ export default function MelkamBet() {
         const uid = String(tgUser.id);
         let u = FirebaseDB.getUser(uid);
         if (!u) {
-          u = { uid, name: tgUser.first_name || "Player", phone: null, balance: 500, joined: Date.now() };
+          u = { uid, name: tgUser.first_name || "Player", phone: null, balance: 0, balance: 0, bonusBalance: 50, bonusUsed: false, joined:
           FirebaseDB.saveUser(uid, u);
         }
         setUser(u);
@@ -367,7 +367,7 @@ export default function MelkamBet() {
 
   const login = (phone, name) => {
     const uid = `demo_${Date.now()}`;
-    const u = { uid, name: name || "Player", phone, balance: 500, joined: Date.now() };
+    const u = { uid, name: name || "Player", phone, balance: 0, bonusBalance: 50, bonusUsed: false, joined: Date.now() };
     FirebaseDB.saveUser(uid, u);
     setUser(u);
     showToast("Welcome to Melkam Bet! 🎉");
@@ -401,8 +401,24 @@ export default function MelkamBet() {
   const placeBet = () => {
     const stake = parseFloat(bsStake);
     if (stake < MIN_BET) { showToast(`Min bet is ${MIN_BET} ETB`, "lose"); return; }
-    if (stake > user.balance) { showToast("Insufficient balance", "lose"); return; }
-    updateBalance(-stake);
+    const totalAvail = (user.balance||0) + (user.bonusBalance||0);
+    if (stake > totalAvail) { showToast("Insufficient balance", "lose"); return; }
+    if (user.bonusBalance > 0 && !user.bonusUsed) {
+      if (betslip.length < 8) { showToast("🎁 Bonus needs 8+ matches!", "lose"); return; }
+      if (!betslip.every(b => b.odd >= 1.7)) { showToast("🎁 Bonus needs each odd 1.70+!", "lose"); return; }
+    }
+    let newBonus = user.bonusBalance || 0;
+    let newBalance = user.balance || 0;
+    if (newBonus > 0) {
+      const fromBonus = Math.min(stake, newBonus);
+      newBonus -= fromBonus;
+      newBalance -= (stake - fromBonus);
+    } else {
+      newBalance -= stake;
+    }
+    const updated = { ...user, balance: newBalance, bonusBalance: newBonus, bonusUsed: newBonus === 0 };
+    FirebaseDB.saveUser(user.uid, updated);
+    setUser(updated);
     FirebaseDB.addBet(user.uid, { game: "Sports", pick: betslip.map(b=>b.pick).join(", "), stake, payout: potWin, won: null, date: Date.now() });
     showToast("Bet placed! Good luck 🤞", "info");
     setBetslip([]);
@@ -544,6 +560,7 @@ function Header({ user }) {
       <div className="bal-pill">
         <div className="label">BAL</div>
         <div className="amount">{(user.balance||0).toLocaleString()} ETB</div>
+{user.bonusBalance > 0 && <div style={{fontSize:10,color:"#4fe87a",fontWeight:700}}>+{user.bonusBalance} BONUS</div>}
       </div>
     </div>
   );
