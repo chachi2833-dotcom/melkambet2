@@ -728,6 +728,13 @@ function SportsPage({ addToBetslip, betslip, showToast }) {
           <div key={mk.key} className={`sport-tab ${market===mk.key?"active":""}`} onClick={() => setMarket(mk.key)}>{mk.label}</div>
         ))}
       </div>
+      ))}
+      </div>
+      <div className="sports-tabs" style={{paddingTop:4,paddingBottom:8}}>
+        {[{k:"h2h",l:"1X2"},{k:"totals",l:"Over/Under"},{k:"btts",l:"Both Score"},{k:"double_chance",l:"Double Chance"}].map(mk=>(
+          <div key={mk.k} className={`sport-tab ${market===mk.k?"active":""}`} onClick={()=>setMarket(mk.k)}>{mk.l}</div>
+        ))}
+      </div>
       {loading && <div className="loading-pulse">Loading odds…</div>}
       {matches.map(m => (
         <div key={m.id} className="match-card">
