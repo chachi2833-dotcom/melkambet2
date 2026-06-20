@@ -712,14 +712,187 @@ function SportsPage({ addToBetslip, betslip, showToast }) {
             {m.drawOdd && (
               <div className={`odd-btn ${selected[m.id]==="X"?"selected":""}`} onClick={() => handleOdd(m,"X",m.drawOdd)}>
                 <span className="odd-label">X</span>
-                <span className="odd-val">{m.drawOdd?.toFixed(2)}</span>
-              </div>
-            )}
-            <div className={`odd-btn ${selected[m.id]==="2"?"selected":""}`} onClick={() => handleOdd(m,"2",m.awayOdd)}>
-              <span className="odd-label">2</span>
-              <span className="odd-val">{m.awayOdd?.toFixed(2)}</span>
-            </div>
+const SPORTS = [
+  { key:"soccer_epl", label:"EPL ⚽" },
+  { key:"soccer_ethiopia_premier", label:"Ethiopia 🇪🇹" },
+  { key:"soccer_uefa_champs_league", label:"UCL ⭐" },
+  { key:"soccer_spain_la_liga", label:"LaLiga 🇪🇸" },
+  { key:"soccer_italy_serie_a", label:"Serie A 🇮🇹" },
+  { key:"soccer_germany_bundesliga", label:"Bundesliga 🇩🇪" },
+  { key:"soccer_france_ligue_one", label:"Ligue 1 🇫🇷" },
+  { key:"basketball_nba", label:"NBA 🏀" },
+  { key:"americanfootball_nfl", label:"NFL 🏈" },
+];
+
+const MARKETS = [
+  { key:"h2h", label:"1X2" },
+  { key:"totals", label:"Over/Under" },
+  { key:"btts", label:"Both Score" },
+  { key:"double_chance", label:"Double Chance" },
+];
+
+function SportsPage({ addToBetslip, betslip, showToast }) {
+  const [sport, setSport] = useState(SPORTS[0].key);
+  const [market, setMarket] = useState("h2h");
+  const [matches, setMatches] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [selected, setSelected] = useState({});
+
+  useEffect(() => { fetchOdds(sport, market); }, [sport, market]);
+
+  const fetchOdds = async (sportKey, marketKey) => {
+    setLoading(true);
+    setMatches([]);
+    try {
+      const API_KEY = "51d4c6ce7b8b5e527a0ae793e48c6e62";
+      const apiMarket = marketKey === "btts" ? "btts" : marketKey === "double_chance" ? "double_chance" : marketKey;
+      const res = await fetch(`https://api.the-odds-api.com/v4/sports/${sportKey}/odds/?apiKey=${API_KEY}&regions=eu&markets=${apiMarket}&oddsFormat=decimal`);
+      if (!res.ok) throw new Error("API error");
+      const data = await res.json();
+      const formatted = data.slice(0,10).map(g => {
+        const bm = g.bookmakers?.[0];
+        const mkt = bm?.markets?.[0];
+        const outcomes = mkt?.outcomes || [];
+        let odds = {};
+        if (marketKey === "h2h") {
+          odds.home = parseFloat((outcomes.find(o => o.name === g.home_team)?.price || 1.9).toFixed(2));
+          odds.draw = outcomes.find(o => o.name === "Draw")?.price ? parseFloat(outcomes.find(o => o.name === "Draw").price.toFixed(2)) : null;
+          odds.away = parseFloat((outcomes.find(o => o.name === g.away_team)?.price || 2.1).toFixed(2));
+        } else if (marketKey === "totals") {
+          const over = outcomes.find(o => o.name === "Over");
+          const under = outcomes.find(o => o.name === "Under");
+          odds.over = over ? parseFloat(over.price.toFixed(2)) : 1.85;
+          odds.under = under ? parseFloat(under.price.toFixed(2)) : 1.95;
+          odds.point = over?.point || 2.5;
+        } else if (marketKey === "btts") {
+          odds.yes = parseFloat((outcomes.find(o => o.name === "Yes")?.price || 1.75).toFixed(2));
+          odds.no = parseFloat((outcomes.find(o => o.name === "No")?.price || 2.05).toFixed(2));
+        } else if (marketKey === "double_chance") {
+          odds.homeOrDraw = parseFloat((outcomes.find(o => o.name === "Home/Draw")?.price || 1.35).toFixed(2));
+          odds.homeOrAway = parseFloat((outcomes.find(o => o.name === "Home/Away")?.price || 1.25).toFixed(2));
+          odds.awayOrDraw = parseFloat((outcomes.find(o => o.name === "Away/Draw")?.price || 1.55).toFixed(2));
+        }
+        return {
+          id: g.id,
+          home: g.home_team,
+          away: g.away_team,
+          time: new Date(g.commence_time).toLocaleTimeString("en-ET",{hour:"2-digit",minute:"2-digit"}),
+          league: g.sport_title,
+          market: marketKey,
+          ...odds
+        };
+      });
+      setMatches(formatted);
+    } catch {
+      setMatches(getDemoMatches(sportKey, marketKey));
+    }
+    setLoading(false);
+  };
+
+  const getDemoMatches = (key, mkt) => {
+    const teams = {
+      soccer_epl: [["Man City","Arsenal"],["Liverpool","Chelsea"],["Tottenham","Man Utd"],["Newcastle","Everton"]],
+      soccer_ethiopia_premier: [["Saint George","Dedebit"],["Fasil Kenema","Wolkite"],["Dire Dawa","Hawassa"]],
+      soccer_spain_la_liga: [["Real Madrid","Barcelona"],["Atletico","Sevilla"],["Valencia","Villarreal"]],
+      soccer_italy_serie_a: [["Inter","AC Milan"],["Juventus","Napoli"],["Roma","Lazio"]],
+      soccer_germany_bundesliga: [["Bayern","Dortmund"],["Leipzig","Leverkusen"],["Frankfurt","Stuttgart"]],
+      soccer_france_ligue_one: [["PSG","Marseille"],["Lyon","Monaco"],["Lille","Nice"]],
+      soccer_uefa_champs_league: [["Real Madrid","Bayern"],["PSG","Arsenal"],["Inter","Chelsea"]],
+      basketball_nba: [["Lakers","Celtics"],["Warriors","Nets"],["Heat","Bucks"]],
+      americanfootball_nfl: [["Chiefs","Eagles"],["Cowboys","Giants"],["49ers","Ravens"]],
+    };
+    const pairs = teams[key] || teams.soccer_epl;
+    return pairs.map(([home,away],i) => {
+      const base = { id:`demo_${i}`, home, away, time:"20:00", league: SPORTS.find(s=>s.key===key)?.label.split(" ")[0]||"Football", market: mkt };
+      if (mkt === "h2h") return { ...base, home:1.85, draw:3.20, away:2.10 };
+      if (mkt === "totals") return { ...base, over:1.85, under:1.95, point:2.5 };
+      if (mkt === "btts") return { ...base, yes:1.75, no:2.05 };
+      if (mkt === "double_chance") return { ...base, homeOrDraw:1.35, homeOrAway:1.25, awayOrDraw:1.55 };
+      return base;
+    });
+  };
+
+  const handleOdd = (match, pick, odd) => {
+    const key = `${match.id}_${pick}`;
+    setSelected(prev => {
+      const exists = prev[key];
+      const next = { ...prev, [key]: !exists };
+      if (!exists) addToBetslip(match, pick, odd);
+      return next;
+    });
+  };
+
+  const renderOdds = (m) => {
+    if (m.market === "h2h") return (
+      <div className="match-odds">
+        <div className={`odd-btn ${selected[`${m.id}_1`]?"selected":""}`} onClick={() => handleOdd(m,"1",m.home)}>
+          <span className="odd-label">1</span><span className="odd-val">{m.home?.toFixed(2)}</span>
+        </div>
+        {m.draw && <div className={`odd-btn ${selected[`${m.id}_X`]?"selected":""}`} onClick={() => handleOdd(m,"X",m.draw)}>
+          <span className="odd-label">X</span><span className="odd-val">{m.draw?.toFixed(2)}</span>
+        </div>}
+        <div className={`odd-btn ${selected[`${m.id}_2`]?"selected":""}`} onClick={() => handleOdd(m,"2",m.away)}>
+          <span className="odd-label">2</span><span className="odd-val">{m.away?.toFixed(2)}</span>
+        </div>
+      </div>
+    );
+    if (m.market === "totals") return (
+      <div className="match-odds">
+        <div className={`odd-btn ${selected[`${m.id}_over`]?"selected":""}`} onClick={() => handleOdd(m,`Over ${m.point}`,m.over)}>
+          <span className="odd-label">OVER {m.point}</span><span className="odd-val">{m.over?.toFixed(2)}</span>
+        </div>
+        <div className={`odd-btn ${selected[`${m.id}_under`]?"selected":""}`} onClick={() => handleOdd(m,`Under ${m.point}`,m.under)}>
+          <span className="odd-label">UNDER {m.point}</span><span className="odd-val">{m.under?.toFixed(2)}</span>
+        </div>
+      </div>
+    );
+    if (m.market === "btts") return (
+      <div className="match-odds">
+        <div className={`odd-btn ${selected[`${m.id}_yes`]?"selected":""}`} onClick={() => handleOdd(m,"BTTS Yes",m.yes)}>
+          <span className="odd-label">YES</span><span className="odd-val">{m.yes?.toFixed(2)}</span>
+        </div>
+        <div className={`odd-btn ${selected[`${m.id}_no`]?"selected":""}`} onClick={() => handleOdd(m,"BTTS No",m.no)}>
+          <span className="odd-label">NO</span><span className="odd-val">{m.no?.toFixed(2)}</span>
+        </div>
+      </div>
+    );
+    if (m.market === "double_chance") return (
+      <div className="match-odds">
+        <div className={`odd-btn ${selected[`${m.id}_hd`]?"selected":""}`} onClick={() => handleOdd(m,"1X",m.homeOrDraw)}>
+          <span className="odd-label">1X</span><span className="odd-val">{m.homeOrDraw?.toFixed(2)}</span>
+        </div>
+        <div className={`odd-btn ${selected[`${m.id}_ha`]?"selected":""}`} onClick={() => handleOdd(m,"12",m.homeOrAway)}>
+          <span className="odd-label">12</span><span className="odd-val">{m.homeOrAway?.toFixed(2)}</span>
+        </div>
+        <div className={`odd-btn ${selected[`${m.id}_ad`]?"selected":""}`} onClick={() => handleOdd(m,"X2",m.awayOrDraw)}>
+          <span className="odd-label">X2</span><span className="odd-val">{m.awayOrDraw?.toFixed(2)}</span>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      <div className="sports-tabs">
+        {SPORTS.map(s => (
+          <div key={s.key} className={`sport-tab ${sport===s.key?"active":""}`} onClick={() => setSport(s.key)}>{s.label}</div>
+        ))}
+      </div>
+      <div className="sports-tabs" style={{paddingTop:8}}>
+        {MARKETS.map(mk => (
+          <div key={mk.key} className={`sport-tab ${market===mk.key?"active":""}`} onClick={() => setMarket(mk.key)}>{mk.label}</div>
+        ))}
+      </div>
+      {loading && <div className="loading-pulse">Loading odds…</div>}
+      {matches.map(m => (
+        <div key={m.id} className="match-card">
+          <div className="match-league">{m.league}</div>
+          <div className="match-teams">
+            <div className="team-name">{m.home}</div>
+            <div className="match-time">{m.time}</div>
+            <div className="team-name away">{m.away}</div>
           </div>
+          {renderOdds(m)}
         </div>
       ))}
       {!loading && matches.length === 0 && (
@@ -728,6 +901,7 @@ function SportsPage({ addToBetslip, betslip, showToast }) {
       <div style={{height:80}} />
     </div>
   );
+  }
 }
 
 // ── CASINO PAGE ───────────────────────────────────────────────────────────────
